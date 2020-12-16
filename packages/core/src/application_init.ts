@@ -72,6 +72,10 @@ export class ApplicationInitStatus {
       }
     }
 
+    /**
+     * @note
+     * 异步 provider 底层依赖的就是 Promise.all
+     */
     Promise.all(asyncInitPromises)
         .then(() => {
           complete();

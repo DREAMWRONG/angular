@@ -12,8 +12,8 @@ import {JitCompilerFactory} from './compiler_factory';
 
 /**
  * A platform that included corePlatform and the compiler.
- *
  * @publicApi
+ * @note 以后当我想运行platformCoreDynamic()的时候，其实已经有了一个platform，就是platformCore
  */
 export const platformCoreDynamic = createPlatformFactory(platformCore, 'coreDynamic', [
   {provide: COMPILER_OPTIONS, useValue: {}, multi: true},

@@ -22,7 +22,8 @@ const _CORE_PLATFORM_PROVIDERS: StaticProvider[] = [
 
 /**
  * This platform has to be included in any other platform
- *
+ * platformCore需要被其他的platform所包含才行。
+ * platformCore是一个function，运行以后返回一个platform，
  * @publicApi
  */
 export const platformCore = createPlatformFactory(null, 'core', _CORE_PLATFORM_PROVIDERS);

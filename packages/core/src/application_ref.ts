@@ -165,7 +165,18 @@ export function createPlatform(injector: Injector): PlatformRef {
  * @param providers A set of dependency providers for platforms created with the new factory.
  *
  * @publicApi
+ *
+ * @note 返回一个函数，该函数用于创建一个 platform，该函数返回一个 PlatformRef，
+ * createPlatformFactory 还可以把不同的platform作为父子关系搞到一起。
+ * 比如最开始的时候， corePlatform就作为父级platform，生成了一个platformDynamic Platform.
+ * createPlatformFactory 最开始运行的时候接受了一些 provider，暂且称为 provideINTERNAL，其作为闭包的内部数据被保存，
+ * 等到之后运行那个platform的时候，会把运行时传来的provider与providerINTERNAL进行数组合并，
+ * 比如说，我通过createPlatformFactory创建corePlatform，创建的时候我传了几个provider（暂时称作providerXX）
+ * 然后我得到了这个corePlatform，之后运行corePlatform的时候，还可以传一些provider进去，就像这样：
+ * platformA = corePlatform(provider:[{yyy:yyy}])
+ * 此时这些providerYYY就会和providerXXX进行合并。成为数组 [providerXXX,providerYYY]
  */
+
 export function createPlatformFactory(
     parentPlatformFactory: ((extraProviders?: StaticProvider[]) => PlatformRef)|null, name: string,
     providers: StaticProvider[] = []): (extraProviders?: StaticProvider[]) => PlatformRef {
@@ -295,6 +306,8 @@ export interface BootstrapOptions {
  * factory such as `PlatformBrowser`, or explicitly by calling the `createPlatform()` function.
  *
  * @publicApi
+ *
+ * @note Platform 可以bootstrap module，有自己的injector
  */
 @Injectable()
 export class PlatformRef {
@@ -326,6 +339,13 @@ export class PlatformRef {
    *
    * let moduleRef = platformBrowser().bootstrapModuleFactory(MyModuleNgFactory);
    * ```
+   *
+   * @note platformBrowserDynamic().bootstrapModule(AppModule)
+   * 上面这段启动代码，其实执行的是，bootstrapModule->把AppModule进行compile（这是compiler的工作）->把产出的moduleFactory
+   * 放到bootstrapModuleFactory进行执行。
+   * 因为是启动的时候，编译的第一个 module，所以在此方法内可以先去设置 ngZone。
+   * 然后去调用了 applicationInitState#runInitializers 方法，
+   * 之后调用了 _moduleDoBootstrap方法，这个方法是运行了bootstrapComponent，开始整个生命周期了。
    */
   bootstrapModuleFactory<M>(moduleFactory: NgModuleFactory<M>, options?: BootstrapOptions):
       Promise<NgModuleRef<M>> {
@@ -402,6 +422,9 @@ export class PlatformRef {
         .then(moduleFactory => this.bootstrapModuleFactory(moduleFactory, options));
   }
 
+  /**
+   * @note 把组件牵扯进来的开始。
+   */
   private _moduleDoBootstrap(moduleRef: InternalNgModuleRef<any>): void {
     const appRef = moduleRef.injector.get(ApplicationRef) as ApplicationRef;
     if (moduleRef._bootstrapComponents.length > 0) {

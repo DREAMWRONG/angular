@@ -1891,6 +1891,9 @@ export function scheduleTick(rootContext: RootContext, flags: RootContextFlags) 
   }
 }
 
+/**
+ * @note 在渲染第一个root component的时候会用这个方法
+ */
 export function tickRootContext(rootContext: RootContext) {
   for (let i = 0; i < rootContext.components.length; i++) {
     const rootComponent = rootContext.components[i];
